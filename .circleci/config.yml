@@ -22,26 +22,9 @@ jobs:
       - restore_cache:
           key: dependencies-{{ checksum "package.json" }}-v1
       - run: yarn test:unit
-  server-doc-build:
-    <<: *shared-config
-    steps:
-      - checkout
-      - restore_cache:
-          key: dependencies-{{ checksum "package.json" }}-v1
-      - run: yarn doc:build
-      - run:
-          name: Copy deployment artifacts to workspace
-          command: |
-            cp docs/ /tmp/server-doc -r
-      - store_artifacts:
-          path: /tmp/server-doc
-      - persist_to_workspace:
-          root: /tmp
-          paths:
-            - server-doc
   server-doc-deploy:
     <<: *shared-config
-    working_directory: ~/deploy-doc-server
+    working_directory: ~/repo
     steps:
       - attach_workspace:
           at: /tmp
@@ -50,7 +33,7 @@ jobs:
           command: yarn add netlify-cli -D
       - run:
           name: Deploy app
-          command: yarn netlify deploy --prod --dir=/tmp/server-doc
+          command: yarn netlify deploy --prod --dir=/repo
 
 workflows:
   version: 2
@@ -60,16 +43,10 @@ workflows:
       - testUnit:
           requires:
             - build
-      - server-doc-build:
+      - server-doc-deploy:
           requires:
             - build
             - testUnit
-          filters:
-            branches:
-              only: main
-      - server-doc-deploy:
-          requires:
-            - server-doc-build
           filters:
             branches:
               only: main
