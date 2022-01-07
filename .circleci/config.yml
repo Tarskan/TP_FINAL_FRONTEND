@@ -44,19 +44,6 @@ jobs:
             docker push $DOCKER_HUB_USER_ID/tp_final_backend_six:$CIRCLE_BUILD_NUM
             docker push $DOCKER_HUB_USER_ID/tp_final_backend_six:latest
 
-  server-deploy:
-    <<: *shared-config
-    working_directory: ~/repo
-    steps:
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: Install netlify
-          command: yarn add netlify-cli -D
-      - run:
-          name: Deploy app
-          command: yarn netlify deploy --prod --dir=~/repo
-
 workflows:
   version: 2
   build-test-and-lint:
@@ -72,10 +59,3 @@ workflows:
           filters:
             branches:
               only: main  
-      - server-deploy:
-          requires:
-            - build
-            - testUnit
-          filters:
-            branches:
-              only: main
